@@ -1,0 +1,517 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>加密货币市场分析</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Marked.js for Markdown -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <!-- Highlight.js for code highlighting -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/styles/github-dark.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/highlight.min.js"></script>
+    <!-- Custom styles -->
+    <style>
+        /* 基础样式 */
+        .markdown-body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
+            line-height: 1.6;
+            color: #24292e;
+            padding: 1rem;
+        }
+
+        /* 标题样式 */
+        .markdown-body h1 {
+            font-size: 2em;
+            font-weight: 600;
+            border-bottom: 1px solid #eaecef;
+            padding-bottom: 0.3em;
+            margin: 1em 0 16px;
+        }
+
+        .markdown-body h2 {
+            font-size: 1.5em;
+            font-weight: 600;
+            border-bottom: 1px solid #eaecef;
+            padding-bottom: 0.3em;
+            margin: 1em 0 16px;
+        }
+
+        .markdown-body h3 {
+            font-size: 1.25em;
+            font-weight: 600;
+            margin: 1em 0 16px;
+        }
+
+        /* 列表样式 */
+        .markdown-body ul,
+        .markdown-body ol {
+            padding-left: 2em;
+            margin: 0.5em 0;
+        }
+
+        .markdown-body ul {
+            list-style: disc outside none;
+        }
+
+        .markdown-body ol {
+            list-style: decimal outside none;
+        }
+
+        .markdown-body li {
+            margin: 0.25em 0;
+        }
+
+        .markdown-body li > p {
+            margin: 0;
+        }
+
+        /* 任务列表样式 */
+        .markdown-body li.task-list-item {
+            list-style-type: none;
+            padding-left: 0;
+            margin-left: -1.3em;
+        }
+
+        .markdown-body li.task-list-item input[type="checkbox"] {
+            margin-right: 0.5em;
+        }
+
+        /* 强调样式 */
+        .markdown-body strong {
+            font-weight: 600;
+        }
+
+        .markdown-body em {
+            font-style: italic;
+        }
+
+        /* 引用样式 */
+        .markdown-body blockquote {
+            margin: 1em 0;
+            padding: 0 1em;
+            color: #6a737d;
+            border-left: 0.25em solid #dfe2e5;
+        }
+
+        /* 代码样式 */
+        .markdown-body pre {
+            margin: 1em 0;
+            padding: 16px;
+            overflow: auto;
+            background-color: #f6f8fa;
+            border-radius: 6px;
+        }
+
+        .markdown-body code {
+            font-family: SFMono-Regular, Consolas, "Liberation Mono", Menlo, monospace;
+            font-size: 85%;
+            padding: 0.2em 0.4em;
+            margin: 0;
+            background-color: rgba(27,31,35,0.05);
+            border-radius: 3px;
+        }
+
+        .markdown-body pre code {
+            padding: 0;
+            margin: 0;
+            border-radius: 0;
+            background-color: transparent;
+            font-size: 100%;
+            word-break: normal;
+            white-space: pre;
+        }
+
+        /* 水平线样式 */
+        .markdown-body hr {
+            height: 0.25em;
+            padding: 0;
+            margin: 24px 0;
+            background-color: #e1e4e8;
+            border: 0;
+        }
+
+        /* 表格样式 */
+        .markdown-body table {
+            border-spacing: 0;
+            border-collapse: collapse;
+            margin: 1em 0;
+            width: 100%;
+        }
+
+        .markdown-body table th,
+        .markdown-body table td {
+            padding: 6px 13px;
+            border: 1px solid #dfe2e5;
+        }
+
+        .markdown-body table tr:nth-child(2n) {
+            background-color: #f6f8fa;
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <div class="min-h-screen">
+        <!-- 导航栏 -->
+        <nav class="bg-white shadow-lg">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="flex justify-between h-16">
+                    <div class="flex">
+                        <div class="flex-shrink-0 flex items-center">
+                            <h1 class="text-2xl font-bold text-gray-900">加密货币市场分析系统</h1>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </nav>
+
+        <!-- 主要内容 -->
+        <main class="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+            <!-- 操作按钮 -->
+            <div class="mb-8 flex space-x-4">
+                <button id="crawlBtn" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded shadow-lg transition duration-200">
+                    开始爬取数据
+                </button>
+                <button id="analyzeBtn" class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded shadow-lg transition duration-200">
+                    开始分析数据
+                </button>
+                <button id="recommendBtn" class="bg-purple-500 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded shadow-lg transition duration-200">
+                    生成投资建议
+                </button>
+                <button id="pushBtn" class="bg-orange-500 hover:bg-orange-700 text-white font-bold py-2 px-4 rounded shadow-lg transition duration-200">
+                    推送到币安
+                </button>
+                <button id="pushWeixinBtn" class="bg-green-600 hover:bg-green-800 text-white font-bold py-2 px-4 rounded shadow-lg transition duration-200">
+                    推送到微信
+                </button>
+                <button id="saveBtn" class="bg-yellow-500 hover:bg-yellow-700 text-white font-bold py-2 px-4 rounded shadow-lg transition duration-200">
+                    保存修改
+                </button>
+            </div>
+
+            <!-- 分析结果 -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <!-- 文章分析 -->
+                <div class="bg-white rounded-lg shadow-lg p-6">
+                    <h2 class="text-xl font-bold mb-4 text-gray-900">文章分析</h2>
+                    <div class="mb-4">
+                        <div id="articleAnalysis" class="markdown-body prose max-w-none"></div>
+                        <textarea id="articleAnalysisEdit" class="w-full h-96 p-4 border rounded-lg hidden font-mono"></textarea>
+                    </div>
+                    <button onclick="toggleEdit('article')" class="text-blue-500 hover:text-blue-700">
+                        切换编辑模式
+                    </button>
+                </div>
+
+                <!-- 帖子分析 -->
+                <div class="bg-white rounded-lg shadow-lg p-6">
+                    <h2 class="text-xl font-bold mb-4 text-gray-900">帖子分析</h2>
+                    <div class="mb-4">
+                        <div id="postAnalysis" class="markdown-body prose max-w-none"></div>
+                        <textarea id="postAnalysisEdit" class="w-full h-96 p-4 border rounded-lg hidden font-mono"></textarea>
+                    </div>
+                    <button onclick="toggleEdit('post')" class="text-blue-500 hover:text-blue-700">
+                        切换编辑模式
+                    </button>
+                </div>
+            </div>
+
+            <!-- 投资建议 -->
+            <div class="mt-8">
+                <div class="bg-white rounded-lg shadow-lg p-6">
+                    <h2 class="text-xl font-bold mb-4 text-gray-900">智能投资建议</h2>
+                    <div class="mb-4">
+                        <div id="recommendationAnalysis" class="markdown-body prose max-w-none"></div>
+                        <textarea id="recommendationAnalysisEdit" class="w-full h-96 p-4 border rounded-lg hidden font-mono"></textarea>
+                    </div>
+                    <button onclick="toggleEdit('recommendation')" class="text-blue-500 hover:text-blue-700">
+                        切换编辑模式
+                    </button>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- 加载动画 -->
+    <div id="loading" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center z-50">
+        <div class="bg-white p-8 rounded-lg shadow-xl text-center">
+            <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto"></div>
+            <p class="mt-4 text-gray-700" id="loadingText">处理中...</p>
+        </div>
+    </div>
+
+    <script>
+        // 初始化marked配置
+        marked.setOptions({
+            breaks: true,
+            gfm: true,
+            pedantic: false,
+            headerIds: true,
+            mangle: false,
+            smartLists: true,
+            smartypants: true
+        });
+
+        // 更新预览函数
+        function updatePreview(markdown, targetElement) {
+            try {
+                // 处理markdown内容
+                let processedMarkdown = markdown || '';
+                
+                // 如果内容包含```markdown标记，提取其中的内容
+                const markdownMatch = processedMarkdown.match(/```markdown\n([\s\S]*?)```/);
+                if (markdownMatch) {
+                    processedMarkdown = markdownMatch[1];
+                }
+                
+                // 移除开头的换行符
+                processedMarkdown = processedMarkdown.replace(/^\n+/, '');
+                
+                // 直接使用marked解析
+                targetElement.innerHTML = marked.parse(processedMarkdown);
+                targetElement.setAttribute('data-markdown', markdown);
+            } catch (error) {
+                console.error('Markdown渲染错误:', error);
+                console.log('原始内容:', markdown);
+                targetElement.innerHTML = '<p class="text-red-500">渲染错误: ' + error.message + '</p>';
+            }
+        }
+
+        // 切换编辑模式
+        function toggleEdit(type) {
+            const viewElement = document.getElementById(`${type}Analysis`);
+            const editElement = document.getElementById(`${type}AnalysisEdit`);
+            
+            if (editElement.classList.contains('hidden')) {
+                // 切换到编辑模式
+                let markdown = viewElement.getAttribute('data-markdown') || '';
+                editElement.value = markdown;
+                editElement.classList.remove('hidden');
+                viewElement.classList.add('hidden');
+            } else {
+                // 切换到预览模式
+                updatePreview(editElement.value, viewElement);
+                editElement.classList.add('hidden');
+                viewElement.classList.remove('hidden');
+            }
+        }
+
+        // 加载分析结果
+        async function loadResults() {
+            try {
+                const response = await fetch('/api/results');
+                const data = await response.json();
+                
+                if (data.status === 'success') {
+                    const articleAnalysis = data.data.article_analysis;
+                    const postAnalysis = data.data.post_analysis;
+                    const recommendationAnalysis = data.data.recommendation_analysis;
+                    
+                    // 文章分析
+                    if (articleAnalysis && articleAnalysis.analysis) {
+                        updatePreview(articleAnalysis.analysis, document.getElementById('articleAnalysis'));
+                    }
+                    
+                    // 帖子分析
+                    if (postAnalysis && postAnalysis.analysis) {
+                        updatePreview(postAnalysis.analysis, document.getElementById('postAnalysis'));
+                    }
+
+                    // 投资建议
+                    if (recommendationAnalysis && recommendationAnalysis.recommendation) {
+                        updatePreview(recommendationAnalysis.recommendation, document.getElementById('recommendationAnalysis'));
+                    }
+                }
+            } catch (error) {
+                console.error('加载结果失败:', error);
+                alert('加载结果失败');
+            }
+        }
+
+        // 保存分析结果
+        async function saveResults() {
+            try {
+                showLoading('保存中...');
+                
+                const articleAnalysis = {
+                    timestamp: new Date().toISOString(),
+                    analysis: document.getElementById('articleAnalysisEdit').value || document.getElementById('articleAnalysis').getAttribute('data-markdown') || '',
+                    type: 'markdown'
+                };
+                
+                const postAnalysis = {
+                    timestamp: new Date().toISOString(),
+                    analysis: document.getElementById('postAnalysisEdit').value || document.getElementById('postAnalysis').getAttribute('data-markdown') || '',
+                    type: 'markdown'
+                };
+                
+                const response = await fetch('/api/update_analysis', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        article_analysis: articleAnalysis,
+                        post_analysis: postAnalysis
+                    })
+                });
+                
+                const data = await response.json();
+                if (data.status === 'success') {
+                    alert('保存成功');
+                    await loadResults();
+                } else {
+                    throw new Error(data.message);
+                }
+            } catch (error) {
+                console.error('保存失败:', error);
+                alert('保存失败: ' + error.message);
+            } finally {
+                hideLoading();
+            }
+        }
+
+        // 显示加载动画
+        function showLoading(text) {
+            document.getElementById('loading').classList.remove('hidden');
+            document.getElementById('loadingText').textContent = text;
+        }
+
+        // 隐藏加载动画
+        function hideLoading() {
+            document.getElementById('loading').classList.add('hidden');
+        }
+
+        // 爬取数据
+        document.getElementById('crawlBtn').addEventListener('click', async () => {
+            try {
+                showLoading('爬取数据中...');
+                const response = await fetch('/api/crawl', {
+                    method: 'POST'
+                });
+                const data = await response.json();
+                
+                if (data.status === 'success') {
+                    alert('爬取完成');
+                } else {
+                    throw new Error(data.message);
+                }
+            } catch (error) {
+                console.error('爬取失败:', error);
+                alert('爬取失败: ' + error.message);
+            } finally {
+                hideLoading();
+            }
+        });
+
+        // 分析数据
+        document.getElementById('analyzeBtn').addEventListener('click', async () => {
+            try {
+                showLoading('分析数据中...');
+                const response = await fetch('/api/analyze', {
+                    method: 'POST'
+                });
+                const data = await response.json();
+                
+                if (data.status === 'success') {
+                    alert('分析完成');
+                    await loadResults();
+                } else {
+                    throw new Error(data.message);
+                }
+            } catch (error) {
+                console.error('分析失败:', error);
+                alert('分析失败: ' + error.message);
+            } finally {
+                hideLoading();
+            }
+        });
+
+        // 生成投资建议
+        async function generateRecommendation() {
+            try {
+                showLoading('生成投资建议中...');
+                
+                // 直接调用后端API生成投资建议
+                const response = await fetch('/api/generate_recommendation', {
+                    method: 'POST'
+                });
+                
+                const data = await response.json();
+                if (data.status === 'success') {
+                    // 更新显示
+                    updatePreview(data.recommendation, document.getElementById('recommendationAnalysis'));
+                    alert('生成完成');
+                } else {
+                    throw new Error(data.message || '生成建议失败');
+                }
+            } catch (error) {
+                console.error('生成建议失败:', error);
+                alert('生成建议失败: ' + error.message);
+            } finally {
+                hideLoading();
+            }
+        }
+
+        // 绑定生成建议按钮事件
+        document.getElementById('recommendBtn').addEventListener('click', generateRecommendation);
+
+        // 保存修改
+        document.getElementById('saveBtn').addEventListener('click', saveResults);
+
+        // 推送到币安
+        document.getElementById('pushBtn').addEventListener('click', async () => {
+            try {
+                showLoading('推送到币安中...');
+                const response = await fetch('/api/push_to_binance', {
+                    method: 'POST'
+                });
+                const data = await response.json();
+                
+                if (data.status === 'success') {
+                    alert('推送成功');
+                } else {
+                    throw new Error(data.message);
+                }
+            } catch (error) {
+                console.error('推送失败:', error);
+                alert('推送失败: ' + error.message);
+            } finally {
+                hideLoading();
+            }
+        });
+
+        // 添加推送到微信的功能
+        document.getElementById('pushWeixinBtn').addEventListener('click', async function() {
+            try {
+                this.disabled = true;
+                this.textContent = '推送中...';
+                
+                const response = await fetch('/api/push_to_weixin', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                const result = await response.json();
+                
+                if (result.status === 'error') {
+                    alert('推送失败: ' + result.message);
+                } else {
+                    alert('推送成功！');
+                }
+            } catch (error) {
+                alert('推送失败: ' + error.message);
+            } finally {
+                this.disabled = false;
+                this.textContent = '推送到微信';
+            }
+        });
+
+        // 页面加载时获取结果
+        window.addEventListener('load', loadResults);
+    </script>
+</body>
+</html> 
