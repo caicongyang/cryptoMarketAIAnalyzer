@@ -127,6 +127,11 @@ class WXPublisher:
         if not md_content:
             return ""
             
+        # 移除可能存在的markdown标记
+        if 'markdown' in md_content.lower():
+            # 去除带有markdown字样的行
+            md_content = re.sub(r'^.*markdown.*$', '', md_content, flags=re.MULTILINE | re.IGNORECASE)
+        
         # 基本的Markdown转换
         # 标题转换
         html_content = re.sub(r'^# (.*?)$', r'<h1>\1</h1>', md_content, flags=re.MULTILINE)
@@ -172,7 +177,7 @@ class WXPublisher:
         if img_match:
             cover_image = img_match.group(1)
             
-        # 基于modern模板的微信文章HTML模板
+        # 优化后的微信文章HTML模板 - 移除了顶部红框和markdown文字
         template = f"""
         <!DOCTYPE html>
         <html>
@@ -190,64 +195,64 @@ class WXPublisher:
                     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
                     line-height: 1.7;
                     color: #333;
-                    background-color: #f8f8f8;
-                    padding: 20px;
+                    background-color: #fff;
+                    padding: 0;
+                    margin: 0;
                 }}
                 .container {{
                     max-width: 100%;
                     margin: 0 auto;
                     background-color: #fff;
-                    padding: 25px;
-                    border-radius: 12px;
-                    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.1);
-                }}
-                .article-header {{
-                    margin-bottom: 30px;
-                    border-bottom: 2px solid #f0f0f0;
-                    padding-bottom: 20px;
-                }}
-                .article-title {{
-                    font-size: 24px;
-                    font-weight: 700;
-                    margin-bottom: 10px;
-                    color: #222;
-                    line-height: 1.4;
+                    padding: 15px;
                 }}
                 .article-meta {{
                     font-size: 14px;
                     color: #888;
                     display: flex;
                     align-items: center;
+                    margin-bottom: 25px;
                 }}
                 .article-date {{
                     margin-right: 15px;
                 }}
+                .article-author {{
+                    font-weight: 500;
+                }}
                 .article-content {{
-                    margin-top: 25px;
+                    margin-top: 10px;
                 }}
                 h1, h2, h3, h4, h5, h6 {{
-                    margin-top: 30px;
-                    margin-bottom: 15px;
+                    margin-top: 28px;
+                    margin-bottom: 14px;
                     font-weight: 600;
                     color: #222;
                     line-height: 1.4;
                 }}
-                h1 {{ font-size: 28px; }}
-                h2 {{ font-size: 24px; color: #0066cc; position: relative; padding-left: 15px; }}
+                h1 {{ 
+                    font-size: 24px; 
+                    margin-top: 0;
+                    margin-bottom: 20px;
+                }}
+                h2 {{ 
+                    font-size: 20px; 
+                    color: #0066cc; 
+                    position: relative; 
+                    padding-left: 12px; 
+                }}
                 h2:before {{
                     content: "";
                     position: absolute;
                     left: 0;
                     top: 5px;
                     bottom: 5px;
-                    width: 5px;
+                    width: 4px;
                     background: linear-gradient(to bottom, #0066cc, #3399ff);
-                    border-radius: 8px;
+                    border-radius: 6px;
                 }}
-                h3 {{ font-size: 20px; color: #333; }}
-                h4 {{ font-size: 18px; color: #555; }}
+                h3 {{ font-size: 18px; color: #333; }}
+                h4 {{ font-size: 16px; color: #555; }}
                 p {{
-                    margin-bottom: 20px;
+                    margin-bottom: 18px;
                     font-size: 16px;
                 }}
                 a {{
@@ -263,29 +268,29 @@ class WXPublisher:
                 img {{
                     max-width: 100%;
                     height: auto;
-                    border-radius: 8px;
-                    margin: 20px 0;
-                    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+                    border-radius: 6px;
+                    margin: 16px 0;
+                    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
                 }}
                 ul, ol {{
-                    margin-bottom: 25px;
-                    padding-left: 25px;
+                    margin-bottom: 22px;
+                    padding-left: 24px;
                 }}
                 li {{
-                    margin-bottom: 10px;
+                    margin-bottom: 8px;
                 }}
                 blockquote {{
                     margin: 20px 0;
-                    padding: 15px 20px;
+                    padding: 12px 18px;
                     background-color: #f5f7f9;
-                    border-left: 5px solid #0066cc;
+                    border-left: 4px solid #0066cc;
                     font-style: italic;
                     color: #555;
-                    border-radius: 0 8px 8px 0;
+                    border-radius: 0 6px 6px 0;
                 }}
                 code {{
                     background-color: #f2f4f6;
-                    padding: 3px 6px;
+                    padding: 3px 5px;
                     border-radius: 4px;
                     font-family: Menlo, Monaco, "Courier New", monospace;
                     font-size: 14px;
@@ -293,10 +298,10 @@ class WXPublisher:
                 }}
                 pre {{
                     background-color: #f2f4f6;
-                    padding: 15px;
-                    border-radius: 8px;
+                    padding: 14px;
+                    border-radius: 6px;
                     overflow-x: auto;
-                    margin: 20px 0;
+                    margin: 18px 0;
                 }}
                 pre code {{
                     background: none;
@@ -316,7 +321,7 @@ class WXPublisher:
                     border: 1px solid #e0e0e0;
                 }}
                 th, td {{
-                    padding: 12px 15px;
+                    padding: 10px 12px;
                     text-align: left;
                 }}
                 th {{
@@ -330,28 +335,66 @@ class WXPublisher:
                     background-color: #ffffcc;
                     padding: 2px;
                 }}
-                .article-footer {{
-                    margin-top: 40px;
-                    padding-top: 20px;
-                    border-top: 2px solid #f0f0f0;
-                    font-size: 14px;
-                    color: #888;
-                    text-align: center;
+                .note-box {{
+                    background-color: #f8f9fa;
+                    border-left: 4px solid #0066cc;
+                    padding: 15px;
+                    margin: 20px 0;
+                    border-radius: 0 6px 6px 0;
+                }}
+                .warning-box {{
+                    background-color: #fff8f8;
+                    border-left: 4px solid #d9534f;
+                    padding: 15px;
+                    margin: 20px 0;
+                    border-radius: 0 6px 6px 0;
+                }}
+                .tip-box {{
+                    background-color: #f2fbf2;
+                    border-left: 4px solid #5cb85c;
+                    padding: 15px;
+                    margin: 20px 0;
+                    border-radius: 0 6px 6px 0;
+                }}
+                .emoji {{
+                    font-size: 18px;
+                    margin-right: 5px;
                 }}
                 .divider {{
                     height: 1px;
                     background: linear-gradient(to right, transparent, #e0e0e0, transparent);
-                    margin: 30px 0;
+                    margin: 25px 0;
+                }}
+                .tag {{
+                    display: inline-block;
+                    background-color: #f0f3f5;
+                    color: #555;
+                    padding: 4px 10px;
+                    border-radius: 20px;
+                    font-size: 13px;
+                    margin-right: 6px;
+                    margin-bottom: 6px;
+                }}
+                .article-footer {{
+                    margin-top: 35px;
+                    padding-top: 18px;
+                    border-top: 1px solid #f0f0f0;
+                    font-size: 14px;
+                    color: #888;
+                    text-align: center;
+                }}
+                /* 修正Markdown列表渲染问题 */
+                ul li p:last-child, 
+                ol li p:last-child {{
+                    margin-bottom: 0;
                 }}
             </style>
         </head>
         <body>
             <div class="container">
-                <div class="article-header">
-                    <h1 class="article-title">{title}</h1>
-                    <div class="article-meta">
-                        <span class="article-date">{date}</span>
-                    </div>
+                <h1>{title}</h1>
+                <div class="article-meta">
+                    <span class="article-date">{date}</span>
                 </div>
                 
                 <div class="article-content">
