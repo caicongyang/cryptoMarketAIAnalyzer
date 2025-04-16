@@ -18,7 +18,7 @@ logger = logging.getLogger("market-analyzer")
 openai.api_key = os.getenv('OPENAI_API_KEY')
 openai.api_base = os.getenv('OPENAI_API_BASE', 'https://api.openai.com/v1')
 openai.api_model = os.getenv('MODEL', 'gpt-4o')
-openai.api_temperature = os.getenv('PREDICTION_THRESHOLD', 0.75)
+openai.api_temperature = float(os.getenv('PREDICTION_THRESHOLD', '0.75').split('#')[0].strip())
 
 class MarketAnalyzer:
     def __init__(self):
@@ -30,7 +30,7 @@ class MarketAnalyzer:
         self.api_key = os.getenv('OPENAI_API_KEY')
         self.api_base = os.getenv('OPENAI_API_BASE', 'https://api.openai.com/v1')
         self.api_model = os.getenv('MODEL', 'gpt-4o')
-        self.api_temperature = float(os.getenv('PREDICTION_THRESHOLD', '0.75'))  # 转换为浮点数
+        self.api_temperature = float(os.getenv('PREDICTION_THRESHOLD', '0.75').split('#')[0].strip())  # 转换为浮点数
 
         logger.info(f"API Base URL: {self.api_base}")  # 调试信息
 
