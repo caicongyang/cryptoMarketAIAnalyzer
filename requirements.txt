@@ -30,3 +30,4 @@ flake8==7.0.0
 # Web框架
 flask==2.3.3
 werkzeug==2.3.7 
+markdown==3.8

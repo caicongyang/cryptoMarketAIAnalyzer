@@ -3,6 +3,7 @@ import json
 import logging
 import html
 import re
+import markdown
 from datetime import datetime, timedelta
 import requests
 from typing import Optional, Dict, Any
@@ -132,286 +133,27 @@ class WXPublisher:
             # 去除带有markdown字样的行
             md_content = re.sub(r'^.*markdown.*$', '', md_content, flags=re.MULTILINE | re.IGNORECASE)
         
-        # 基本的Markdown转换
-        # 标题转换
-        html_content = re.sub(r'^# (.*?)$', r'<h1>\1</h1>', md_content, flags=re.MULTILINE)
-        html_content = re.sub(r'^## (.*?)$', r'<h2>\1</h2>', html_content, flags=re.MULTILINE)
-        html_content = re.sub(r'^### (.*?)$', r'<h3>\1</h3>', html_content, flags=re.MULTILINE)
-        html_content = re.sub(r'^#### (.*?)$', r'<h4>\1</h4>', html_content, flags=re.MULTILINE)
+        # 使用markdown库来转换内容
+        # 配置markdown扩展功能
+        extensions = [
+            'markdown.extensions.extra',  # 包含表格、围栏代码块等扩展
+            'markdown.extensions.codehilite',  # 代码高亮
+            'markdown.extensions.smarty',  # 智能引号和破折号
+            'markdown.extensions.nl2br',  # 将单行换行符转换为<br>标签
+            'markdown.extensions.toc'  # 目录生成
+        ]
         
-        # 粗体和斜体
-        html_content = re.sub(r'\*\*(.*?)\*\*', r'<strong>\1</strong>', html_content)
-        html_content = re.sub(r'\*(.*?)\*', r'<em>\1</em>', html_content)
-        
-        # 链接
-        html_content = re.sub(r'\[(.*?)\]\((.*?)\)', r'<a href="\2">\1</a>', html_content)
-        
-        # 代码块
-        html_content = re.sub(r'```(.*?)```', r'<pre><code>\1</code></pre>', html_content, flags=re.DOTALL)
-        
-        # 行内代码
-        html_content = re.sub(r'`(.*?)`', r'<code>\1</code>', html_content)
-        
-        # 无序列表
-        html_content = re.sub(r'^\* (.*?)$', r'<li>\1</li>', html_content, flags=re.MULTILINE)
-        html_content = re.sub(r'(<li>.*?</li>)(\n<li>.*?</li>)+', r'<ul>\g<0></ul>', html_content, flags=re.DOTALL)
-        
-        # 有序列表
-        html_content = re.sub(r'^\d+\. (.*?)$', r'<li>\1</li>', html_content, flags=re.MULTILINE)
-        html_content = re.sub(r'(<li>.*?</li>)(\n<li>.*?</li>)+', r'<ol>\g<0></ol>', html_content, flags=re.DOTALL)
-        
-        # 段落
-        html_content = re.sub(r'(?<!\n)\n(?!\n)', ' ', html_content)  # 单个换行变为空格
-        html_content = re.sub(r'\n\n(.*?)(?=\n\n|\Z)', r'<p>\1</p>', html_content, flags=re.DOTALL)
-        
-        return html_content
+        try:
+            # 转换markdown为HTML
+            html_content = markdown.markdown(md_content, extensions=extensions)
+            logger.info("使用markdown库成功转换内容")
+            return html_content
+        except Exception as e:
+            logger.error(f"使用markdown库转换失败: {e}")
+            # 如果转换失败，返回原始内容
+            return f"<p>{md_content}</p>"
 
-    def _apply_template(self, html_content: str, title: str, date: str = None) -> str:
-        """应用微信文章模板"""
-        if date is None:
-            date = datetime.now().strftime("%Y-%m-%d")
-            
-        # 提取第一张图片作为封面（如果有）
-        cover_image = ""
-        img_match = re.search(r'<img.*?src="(.*?)".*?>', html_content)
-        if img_match:
-            cover_image = img_match.group(1)
-            
-        # 优化后的微信文章HTML模板 - 移除了顶部红框和markdown文字
-        template = f"""
-        <!DOCTYPE html>
-        <html>
-        <head>
-            <meta charset="UTF-8">
-            <meta name="viewport" content="width=device-width, initial-scale=1.0">
-            <title>{title}</title>
-            <style>
-                * {{
-                    margin: 0;
-                    padding: 0;
-                    box-sizing: border-box;
-                }}
-                body {{
-                    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
-                    line-height: 1.7;
-                    color: #333;
-                    background-color: #fff;
-                    padding: 0;
-                    margin: 0;
-                }}
-                .container {{
-                    max-width: 100%;
-                    margin: 0 auto;
-                    background-color: #fff;
-                    padding: 15px;
-                }}
-                .article-meta {{
-                    font-size: 14px;
-                    color: #888;
-                    display: flex;
-                    align-items: center;
-                    margin-bottom: 25px;
-                }}
-                .article-date {{
-                    margin-right: 15px;
-                }}
-                .article-author {{
-                    font-weight: 500;
-                }}
-                .article-content {{
-                    margin-top: 10px;
-                }}
-                h1, h2, h3, h4, h5, h6 {{
-                    margin-top: 28px;
-                    margin-bottom: 14px;
-                    font-weight: 600;
-                    color: #222;
-                    line-height: 1.4;
-                }}
-                h1 {{ 
-                    font-size: 24px; 
-                    margin-top: 0;
-                    margin-bottom: 20px;
-                }}
-                h2 {{ 
-                    font-size: 20px; 
-                    color: #0066cc; 
-                    position: relative; 
-                    padding-left: 12px; 
-                }}
-                h2:before {{
-                    content: "";
-                    position: absolute;
-                    left: 0;
-                    top: 5px;
-                    bottom: 5px;
-                    width: 4px;
-                    background: linear-gradient(to bottom, #0066cc, #3399ff);
-                    border-radius: 6px;
-                }}
-                h3 {{ font-size: 18px; color: #333; }}
-                h4 {{ font-size: 16px; color: #555; }}
-                p {{
-                    margin-bottom: 18px;
-                    font-size: 16px;
-                }}
-                a {{
-                    color: #0066cc;
-                    text-decoration: none;
-                    border-bottom: 1px solid #cce5ff;
-                    transition: all 0.3s ease;
-                }}
-                a:hover {{
-                    color: #004499;
-                    border-bottom-color: #004499;
-                }}
-                img {{
-                    max-width: 100%;
-                    height: auto;
-                    border-radius: 6px;
-                    margin: 16px 0;
-                    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
-                }}
-                ul, ol {{
-                    margin-bottom: 22px;
-                    padding-left: 24px;
-                }}
-                li {{
-                    margin-bottom: 8px;
-                }}
-                blockquote {{
-                    margin: 20px 0;
-                    padding: 12px 18px;
-                    background-color: #f5f7f9;
-                    border-left: 4px solid #0066cc;
-                    font-style: italic;
-                    color: #555;
-                    border-radius: 0 6px 6px 0;
-                }}
-                code {{
-                    background-color: #f2f4f6;
-                    padding: 3px 5px;
-                    border-radius: 4px;
-                    font-family: Menlo, Monaco, "Courier New", monospace;
-                    font-size: 14px;
-                    color: #c7254e;
-                }}
-                pre {{
-                    background-color: #f2f4f6;
-                    padding: 14px;
-                    border-radius: 6px;
-                    overflow-x: auto;
-                    margin: 18px 0;
-                }}
-                pre code {{
-                    background: none;
-                    padding: 0;
-                    color: #333;
-                    font-size: 14px;
-                    line-height: 1.5;
-                }}
-                table {{
-                    width: 100%;
-                    border-collapse: collapse;
-                    margin: 25px 0;
-                    overflow-x: auto;
-                    display: block;
-                }}
-                table, th, td {{
-                    border: 1px solid #e0e0e0;
-                }}
-                th, td {{
-                    padding: 10px 12px;
-                    text-align: left;
-                }}
-                th {{
-                    background-color: #f2f4f6;
-                    font-weight: 600;
-                }}
-                tr:nth-child(even) {{
-                    background-color: #f9f9f9;
-                }}
-                .highlight {{
-                    background-color: #ffffcc;
-                    padding: 2px;
-                }}
-                .note-box {{
-                    background-color: #f8f9fa;
-                    border-left: 4px solid #0066cc;
-                    padding: 15px;
-                    margin: 20px 0;
-                    border-radius: 0 6px 6px 0;
-                }}
-                .warning-box {{
-                    background-color: #fff8f8;
-                    border-left: 4px solid #d9534f;
-                    padding: 15px;
-                    margin: 20px 0;
-                    border-radius: 0 6px 6px 0;
-                }}
-                .tip-box {{
-                    background-color: #f2fbf2;
-                    border-left: 4px solid #5cb85c;
-                    padding: 15px;
-                    margin: 20px 0;
-                    border-radius: 0 6px 6px 0;
-                }}
-                .emoji {{
-                    font-size: 18px;
-                    margin-right: 5px;
-                }}
-                .divider {{
-                    height: 1px;
-                    background: linear-gradient(to right, transparent, #e0e0e0, transparent);
-                    margin: 25px 0;
-                }}
-                .tag {{
-                    display: inline-block;
-                    background-color: #f0f3f5;
-                    color: #555;
-                    padding: 4px 10px;
-                    border-radius: 20px;
-                    font-size: 13px;
-                    margin-right: 6px;
-                    margin-bottom: 6px;
-                }}
-                .article-footer {{
-                    margin-top: 35px;
-                    padding-top: 18px;
-                    border-top: 1px solid #f0f0f0;
-                    font-size: 14px;
-                    color: #888;
-                    text-align: center;
-                }}
-                /* 修正Markdown列表渲染问题 */
-                ul li p:last-child, 
-                ol li p:last-child {{
-                    margin-bottom: 0;
-                }}
-            </style>
-        </head>
-        <body>
-            <div class="container">
-                <h1>{title}</h1>
-                <div class="article-meta">
-                    <span class="article-date">{date}</span>
-                </div>
-                
-                <div class="article-content">
-                    {html_content}
-                </div>
-                
-                <div class="divider"></div>
-                
-                <div class="article-footer">
-                    <p>感谢阅读，欢迎在下方留言和分享您的想法！</p>
-                </div>
-            </div>
-        </body>
-        </html>
-        """
-        
-        return template
+   
 
     async def upload_draft(self, article: str, title: str, digest: str, media_id: str) -> Dict[str, str]:
         """上传草稿"""
@@ -424,7 +166,6 @@ class WXPublisher:
         # 假设文章内容可能是Markdown格式，尝试转换为HTML并应用模板
         try:
             html_content = self._md_to_html(article)
-            article = self._apply_template(html_content, title)
             logger.info("Markdown内容已成功转换为带模板的HTML")
         except Exception as e:
             logger.warning(f"Markdown转换失败，使用原始内容: {e}")
@@ -439,7 +180,7 @@ class WXPublisher:
             "title": title,
             "author": await self.config_manager.get("AUTHOR"),
             "digest": digest,
-            "content": article,
+            "content": html_content,
             "thumb_media_id": media_id,
             "need_open_comment": 1 if await self.config_manager.get("NEED_OPEN_COMMENT") == "true" else 0,
             "only_fans_can_comment": 1 if await self.config_manager.get("ONLY_FANS_CAN_COMMENT") == "true" else 0
